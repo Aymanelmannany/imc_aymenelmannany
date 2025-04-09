@@ -85,7 +85,7 @@ Click Index > Add Index (or "Ajouter un index")
   - Champs d'application des requetes --> Collection
 
 
-9) Run the project
+8) Run the project
 Start the project with the command:
 flutter run -d edge (It's recommended to run the project on the edge, to avoid the problems with the android)
 If you encounter any issues, feel free to contact me.
