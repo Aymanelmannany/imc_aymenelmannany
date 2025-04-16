@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'bmi_calculator.dart';
+import 'locale_notifier.dart';
+import 'main.dart';
 
 class BMIHistoryScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -8,10 +13,7 @@ class BMIHistoryScreen extends StatelessWidget {
 
   Future<List<Map<String, dynamic>>> _fetchBMIResults() async {
     User? user = _auth.currentUser;
-    if (user == null) {
-      print("User is not logged in");
-      return [];
-    }
+    if (user == null) return [];
 
     try {
       final snapshot = await _firestore
@@ -20,16 +22,7 @@ class BMIHistoryScreen extends StatelessWidget {
           .orderBy('timestamp', descending: true)
           .get();
 
-      if (snapshot.docs.isEmpty) {
-        print("No BMI results found for user: ${user.uid}");
-        return [];
-      }
-
-      print("Fetched ${snapshot.docs.length} BMI results");
-      return snapshot.docs.map((doc) {
-        print("Document data: ${doc.data()}");
-        return doc.data();
-      }).toList();
+      return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
       print("Error fetching BMI results: $e");
       return [];
@@ -38,10 +31,42 @@ class BMIHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final localeNotifier = Provider.of<LocaleNotifier>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("BMI History"),
+        title: Text(l10n.bmiHistoryTitle),
         backgroundColor: Colors.green,
+        actions: [
+          PopupMenuButton<Locale>(
+            icon: const Icon(Icons.language),
+            onSelected: (Locale locale) {
+              final notifier = Provider.of<LocaleNotifier>(context, listen: false);
+              notifier.setLocale(locale);
+
+              // Get the MyAppState instance and refresh
+              final appState = context.findRootAncestorStateOfType<MyAppState>();
+              appState?.refresh();
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem(
+                  value: Locale('en'),
+                  child: Text('English'),
+                ),
+                const PopupMenuItem(
+                  value: Locale('fr'),
+                  child: Text('Français'),
+                ),
+                const PopupMenuItem(
+                  value: Locale('ar'),
+                  child: Text('العربية'),
+                ),
+              ];
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _fetchBMIResults(),
@@ -51,29 +76,39 @@ class BMIHistoryScreen extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            print("FutureBuilder error: ${snapshot.error}");
-            return Center(child: Text("Error loading data"));
+            return Center(child: Text(l10n.errorLoadingData));
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text("No BMI results found"));
+            return Center(child: Text(l10n.noResultsFound));
           }
 
-          var bmiResults = snapshot.data!;
-
+// In BMIHistoryScreen.dart
           return ListView.builder(
-            itemCount: bmiResults.length,
+            itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
-              var data = bmiResults[index];
+              var data = snapshot.data![index];
+
+              // Vérifie que 'bmi' n'est pas null et est un nombre
+              double bmi = (data['bmi'] is num) ? (data['bmi'] as num).toDouble() : 0.0;
+              String resultKey = data['resultKey'] ?? '';
+              String resultText = BMICalculator.getBMIResult(context, bmi);
+
+              Timestamp? timestamp = data['timestamp'];
+              String timeText = timestamp != null
+                  ? timestamp.toDate().toString()
+                  : l10n.unknownDate;
+
               return ListTile(
-                title: Text("BMI: ${data['bmi'].toStringAsFixed(2)}"),
-                subtitle: Text("Result: ${data['result']}"),
+                title: Text("${l10n.bmi}: ${bmi.toStringAsFixed(2)}"),
+                subtitle: Text("${l10n.result}: $resultText"),
                 trailing: Text(
-                  "${data['timestamp'].toDate()}",
-                  style: TextStyle(fontSize: 12),
+                  timeText,
+                  style: const TextStyle(fontSize: 12),
                 ),
               );
-            },
+            }
+,
           );
         },
       ),

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:go_router/go_router.dart'; // Import GoRouter
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'bmi_calculator.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'bmi_history.dart';
+import 'locale_notifier.dart';
+import 'main.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -14,36 +18,42 @@ class _HomeState extends State<Home> {
   final TextEditingController controlWeight = TextEditingController();
   final TextEditingController controlHeight = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String _info = "Report your data";
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Nouvelle variable pour afficher les infos
+  String _info = '';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _info = AppLocalizations.of(context)!.reportData;
+  }
 
   void _resetFields() {
     controlHeight.text = "";
     controlWeight.text = "";
     setState(() {
-      _info = "Report your data";
+      _info = AppLocalizations.of(context)!.reportData;
     });
   }
 
-  Future <void> _calculate() async {
+  Future<void> _calculate() async {
     if (_formKey.currentState!.validate()) {
       double weight = double.parse(controlWeight.text);
       double height = double.parse(controlHeight.text) / 100;
-      double imc = BMICalculator.calculateBMI(weight, height);
-      String result = BMICalculator.getBMIResult(imc);
+      double bmi = BMICalculator.calculateBMI(weight, height);
 
       setState(() {
-        _info = result;
+        _info = BMICalculator.getBMIResult(context, bmi);
       });
 
-      // Save the result to Firestore
       User? user = _auth.currentUser;
       if (user != null) {
         await _firestore.collection('bmiResults').add({
           'userId': user.uid,
-          'bmi': imc,
-          'result': result,
+          'bmi': bmi,
+          'resultKey': BMICalculator.getBMIResultKey(bmi),
           'timestamp': DateTime.now(),
         });
       }
@@ -52,26 +62,42 @@ class _HomeState extends State<Home> {
 
   void _signOut() async {
     try {
-      await _auth.signOut(); // Sign out the user
-      print("User signed out successfully");
-
-      // Navigate to the sign-in screen after logout
+      await _auth.signOut();
       if (mounted) {
-        context.pushReplacement('/sign-in'); // Use GoRouter to navigate
+        context.pushReplacement('/sign-in');
       }
     } catch (e) {
       print("Error signing out: $e");
     }
   }
 
+  void _refreshText() {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() {
+      if (_info == l10n.bmiUnderweight ||
+          _info == l10n.bmiNormal ||
+          _info == l10n.bmiOverweight ||
+          _info == l10n.bmiObesity) {
+        if (controlWeight.text.isNotEmpty && controlHeight.text.isNotEmpty) {
+          double weight = double.parse(controlWeight.text);
+          double height = double.parse(controlHeight.text) / 100;
+          double bmi = BMICalculator.calculateBMI(weight, height);
+          _info = BMICalculator.getBMIResult(context, bmi);
+        }
+      } else {
+        _info = l10n.reportData;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     User? user = _auth.currentUser;
+    final l10n = AppLocalizations.of(context)!;
 
     if (user == null) {
-      // Redirect to the sign-in screen if the user is not logged in
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.pushReplacement('/sign-in'); // Use GoRouter's pushReplacement
+        context.pushReplacement('/sign-in');
       });
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -80,55 +106,50 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "BMI CALCULATOR",
-          style: TextStyle(fontFamily: "Segoe UI"),
-        ),
+        title: Text(l10n.appTitle, style: TextStyle(fontFamily: "Segoe UI")),
         centerTitle: true,
         backgroundColor: Colors.green,
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _resetFields,
+          PopupMenuButton<Locale>(
+            icon: const Icon(Icons.language),
+            onSelected: (Locale locale) {
+              final notifier = Provider.of<LocaleNotifier>(context, listen: false);
+              notifier.setLocale(locale);
+              final appState = context.findRootAncestorStateOfType<MyAppState>();
+              appState?.refresh();
+              _refreshText(); // Mise à jour du texte _info
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem(value: Locale('en'), child: Text('English')),
+              const PopupMenuItem(value: Locale('fr'), child: Text('Français')),
+              const PopupMenuItem(value: Locale('ar'), child: Text('العربية')),
+            ],
           ),
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: _signOut,
-          ),
+          IconButton(icon: Icon(Icons.refresh), onPressed: _resetFields),
+          IconButton(icon: Icon(Icons.logout), onPressed: _signOut),
         ],
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+        padding: EdgeInsets.symmetric(horizontal: 10.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                Icons.person,
-                size: 120.0,
-                color: Colors.green,
-              ),
+              Icon(Icons.person, size: 120.0, color: Colors.green),
               TextFormField(
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  labelText: "Weight (Kg)",
-                  labelStyle: TextStyle(
-                    color: Colors.green,
-                    fontFamily: "Segoe UI",
-                  ),
+                  labelText: l10n.weightLabel,
+                  labelStyle: TextStyle(color: Colors.green, fontFamily: "Segoe UI"),
                 ),
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.green,
-                  fontSize: 25.0,
-                  fontFamily: "Segoe UI",
-                ),
+                style: TextStyle(color: Colors.green, fontSize: 25.0, fontFamily: "Segoe UI"),
                 controller: controlWeight,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Insert your weight!";
+                    return AppLocalizations.of(context)!.insertWeightError;
                   }
                   return null;
                 },
@@ -136,18 +157,11 @@ class _HomeState extends State<Home> {
               TextFormField(
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: "Height (cm)",
-                  labelStyle: TextStyle(
-                    color: Colors.green,
-                    fontFamily: "Segoe UI",
-                  ),
+                  labelText: l10n.heightLabel,
+                  labelStyle: TextStyle(color: Colors.green, fontFamily: "Segoe UI"),
                 ),
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.green,
-                  fontSize: 25.0,
-                  fontFamily: "Segoe UI",
-                ),
+                style: TextStyle(color: Colors.green, fontSize: 25.0, fontFamily: "Segoe UI"),
                 controller: controlHeight,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -157,44 +171,31 @@ class _HomeState extends State<Home> {
                 },
               ),
               Padding(
-                padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+                padding: EdgeInsets.symmetric(vertical: 10.0),
                 child: SizedBox(
                   height: 50.0,
                   child: ElevatedButton(
                     onPressed: _calculate,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
-                      textStyle: TextStyle(
-                        fontSize: 25.0,
-                        fontFamily: "Segoe UI",
-                      ),
+                      textStyle: TextStyle(fontSize: 25.0, fontFamily: "Segoe UI"),
                     ),
-                    child: Text(
-                      "Calculate",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    child: Text(l10n.calculateButton, style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ),
               Text(
                 _info,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.green,
-                  fontSize: 25.0,
-                  fontFamily: "Segoe UI",
-                ),
+                style: TextStyle(color: Colors.green, fontSize: 25.0, fontFamily: "Segoe UI"),
               ),
               Padding(
                 padding: EdgeInsets.only(top: 10.0),
                 child: ElevatedButton(
-                  onPressed: () {
-                    context.push('/history'); // Use GoRouter's push
-                  },
-                  child: Text("View History"),
+                  onPressed: () => context.push('/history'),
+                  child: Text(l10n.viewHistory),
                 ),
               ),
-
             ],
           ),
         ),
