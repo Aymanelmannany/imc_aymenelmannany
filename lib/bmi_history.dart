@@ -106,6 +106,7 @@ class BMIHistoryScreen extends StatelessWidget {
                   timeText,
                   style: const TextStyle(fontSize: 12),
                 ),
+                tileColor: BMICalculator.getBMIColor(bmi).withOpacity(0.2),
               );
             }
 ,

@@ -89,7 +89,6 @@ class _HomeState extends State<Home> {
       }
     });
   }
-
   @override
   Widget build(BuildContext context) {
     User? user = _auth.currentUser;
@@ -184,11 +183,20 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ),
-              Text(
-                _info,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.green, fontSize: 25.0, fontFamily: "Segoe UI"),
+            Text(
+              _info,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _info == AppLocalizations.of(context)!.reportData
+                    ? Colors.green
+                    : BMICalculator.getBMIColor(BMICalculator.calculateBMI(
+                    double.parse(controlWeight.text),
+                    double.parse(controlHeight.text) / 100
+                )),
+                fontSize: 25.0,
+                fontFamily: "Segoe UI",
               ),
+            ),
               Padding(
                 padding: EdgeInsets.only(top: 10.0),
                 child: ElevatedButton(
