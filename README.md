@@ -54,14 +54,8 @@ service cloud.firestore {
   - Click Publish (Partager).
 
   - Click Index > Add Index (or "Ajouter un index")
-
-    - ID de collection : bmiResults
-  
-    - Chemin d'accès du champ : userId   -->  Ascending
-    - Chemin d'accès du champ : timestamp   -->  Descending
-    - Chemin d'accès du champ :^__name__  -->  Descending (You may click on "Ajouter un champ")
-
-    - Champs d'application des requetes --> Collection
+    Screenshot explain everything
+    https://drive.google.com/file/d/15RuAYuHvQ2-L0qvUgw5-wqwZiRf52X9J/view?usp=sharing
     - Then, "Create Index"
 
 6) Configure Firebase in the Flutter project
