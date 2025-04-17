@@ -59,7 +59,7 @@ service cloud.firestore {
   
     - Chemin d'accès du champ : userId   -->  Ascending
     - Chemin d'accès du champ : timestamp   -->  Descending
-    - Chemin d'accès du champ :" __name__ "  -->  Descending (You may click on "Ajouter un champ")
+    - Chemin d'accès du champ :^__name__  -->  Descending (You may click on "Ajouter un champ")
 
     - Champs d'application des requetes --> Collection
     - Then, "Create Index"
