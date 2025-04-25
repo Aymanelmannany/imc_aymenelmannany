@@ -1,13 +1,32 @@
 {
   "project_info": {
-    "project_number": "7309717003",
-    "project_id": "imc-backend-tran",
-    "storage_bucket": "imc-backend-tran.firebasestorage.app"
+    "project_number": "1097336796107",
+    "project_id": "ayymonu77",
+    "storage_bucket": "ayymonu77.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:7309717003:android:81ad667a29a8757f97210e",
+        "mobilesdk_app_id": "1:1097336796107:android:baf446ec4e148b83ddbc4e",
+        "android_client_info": {
+          "package_name": "com.example.bmi_firebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8cBFICNkpIZTgcBkNOKwpqNqOI64-bWw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1097336796107:android:58359806160cd26fddbc4e",
         "android_client_info": {
           "package_name": "com.example.imc_with_backend"
         }
@@ -15,7 +34,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAHEQ-aVPTpv5jdNU7VaCXW6lkyOb2Alhw"
+          "current_key": "AIzaSyD8cBFICNkpIZTgcBkNOKwpqNqOI64-bWw"
         }
       ],
       "services": {

@@ -20,6 +20,20 @@
   "errorLoadingData": "خطأ في تحميل البيانات",
   "noResultsFound": "لا توجد نتائج",
   "bmi": "مؤشر كتلة الجسم",
+  "signUpPrompt":"ليس لديك حساب",
+  "forgotPasswordTitle": "نسيت كلمة المرور؟",
   "result": "النتيجة",
-  "unknownDate": "تاريخ غير معروف"
+  "unknownDate": "تاريخ غير معروف",
+  "emailLabel": "البريد الإلكتروني",
+  "passwordLabel": "كلمة المرور",
+  "signInButton": "تسجيل الدخول",
+  "registerButton": "تسجيل",
+  "insertEmailError": "يرجى إدخال البريد الإلكتروني",
+  "insertPasswordError": "يرجى إدخال كلمة المرور",
+  "invalidEmailError": "البريد الإلكتروني غير صالح",
+  "emailInUseError": "البريد الإلكتروني مستخدم بالفعل",
+  "weakPasswordError": "كلمة المرور ضعيفة جدًا",
+  "signInTitle": "تسجيل الدخول",
+  "dontHaveAccount": "ليس لديك حساب؟",
+  "forgotPassword": "نسيت كلمة المرور؟"
 }

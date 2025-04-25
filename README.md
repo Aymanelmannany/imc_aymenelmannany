@@ -9,7 +9,7 @@ Core Features:
 
 
 1) Clone the project
-git clone https://github.com/Yassermar11/imc_backend_translation
+git clone https://github.com/Aymanelmannany
 
 2) Update Flutter dependencies
 Run the following command to ensure all dependencies are up to date:
@@ -81,4 +81,4 @@ Start the project with the command:
 $ flutter run -d edge (It's recommended to run the project on the edge, to avoid the problems with the android)
 If you encounter any issues, feel free to contact me.
 
-📌 made by @Yassermar11
+📌 made by @aymenelmannany

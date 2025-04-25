@@ -1,1 +1,19 @@
-{}
+{
+  "ar": [
+    "signInTitle",
+    "forgotPasswordTitle",
+    "forgotPassword",
+    "forgotPasswordPrompt",
+    "signUpPrompt",
+    "signInError",
+    "emailLabel",
+    "passwordLabel",
+    "signInButton",
+    "registerButton",
+    "insertEmailError",
+    "insertPasswordError",
+    "invalidEmailError",
+    "emailInUseError",
+    "weakPasswordError"
+  ]
+}

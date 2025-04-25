@@ -11,6 +11,8 @@ class BMIHistoryScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  const BMIHistoryScreen({super.key});
+
   Future<List<Map<String, dynamic>>> _fetchBMIResults() async {
     User? user = _auth.currentUser;
     if (user == null) return [];

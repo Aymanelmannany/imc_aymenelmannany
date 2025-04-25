@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +9,8 @@ import 'bmi_history.dart';
 import 'home.dart';
 import 'firebase_options.dart';
 import 'locale_notifier.dart';
+import 'custom_sign_in_screen.dart';
+import 'custom_forgot_password_screen.dart'; // Importer le nouveau widget
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,10 +18,9 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    FirebaseUIAuth.configureProviders([EmailAuthProvider()]);
 
     final localeNotifier = LocaleNotifier();
-    await localeNotifier.loadLocale(); // Load saved language
+    await localeNotifier.setLocale(const Locale('ar')); // Forcer l'arabe au démarrage
 
     runApp(
       ChangeNotifierProvider.value(
@@ -49,24 +49,63 @@ class MyAppState extends State<MyApp> {
       ),
       GoRoute(
         path: '/sign-in',
-        builder: (context, state) => SignInScreen(
-          actions: [
-            ForgotPasswordAction((context, email) {
-              context.push('/forgot-password', extra: email);
-            }),
-            AuthStateChangeAction((context, state) {
-              if (state is SignedIn || state is UserCreated) {
-                context.pushReplacement('/');
-              }
-            }),
-          ],
-        ),
+        builder: (context, state) {
+          final l10n = AppLocalizations.of(context)!;
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(l10n.signInTitle, style: const TextStyle(fontFamily: "Segoe UI")),
+              centerTitle: true,
+              backgroundColor: Colors.green,
+              actions: [
+                PopupMenuButton<Locale>(
+                  icon: const Icon(Icons.language),
+                  onSelected: (Locale locale) {
+                    final notifier = Provider.of<LocaleNotifier>(context, listen: false);
+                    notifier.setLocale(locale);
+                    final appState = context.findRootAncestorStateOfType<MyAppState>();
+                    appState?.refresh();
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    const PopupMenuItem(value: Locale('en'), child: Text('English')),
+                    const PopupMenuItem(value: Locale('fr'), child: Text('Français')),
+                    const PopupMenuItem(value: Locale('ar'), child: Text('العربية')),
+                  ],
+                ),
+              ],
+            ),
+            body: const CustomSignInScreen(),
+          );
+        },
       ),
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) {
+          final l10n = AppLocalizations.of(context)!;
           final email = state.extra as String?;
-          return ForgotPasswordScreen(email: email);
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(l10n.forgotPasswordTitle, style: const TextStyle(fontFamily: "Segoe UI")),
+              centerTitle: true,
+              backgroundColor: Colors.green,
+              actions: [
+                PopupMenuButton<Locale>(
+                  icon: const Icon(Icons.language),
+                  onSelected: (Locale locale) {
+                    final notifier = Provider.of<LocaleNotifier>(context, listen: false);
+                    notifier.setLocale(locale);
+                    final appState = context.findRootAncestorStateOfType<MyAppState>();
+                    appState?.refresh();
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    const PopupMenuItem(value: Locale('en'), child: Text('English')),
+                    const PopupMenuItem(value: Locale('fr'), child: Text('Français')),
+                    const PopupMenuItem(value: Locale('ar'), child: Text('العربية')),
+                  ],
+                ),
+              ],
+            ),
+            body: CustomForgotPasswordScreen(email: email), // Utiliser CustomForgotPasswordScreen
+          );
         },
       ),
       GoRoute(
@@ -83,6 +122,7 @@ class MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     final localeNotifier = Provider.of<LocaleNotifier>(context);
+    print("Current locale: ${localeNotifier.locale}"); // Log pour vérifier la langue
 
     return MaterialApp.router(
       routerConfig: _router,

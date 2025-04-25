@@ -10,6 +10,8 @@ import 'locale_notifier.dart';
 import 'main.dart';
 
 class Home extends StatefulWidget {
+  const Home({super.key});
+
   @override
   _HomeState createState() => _HomeState();
 }
@@ -21,7 +23,6 @@ class _HomeState extends State<Home> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Nouvelle variable pour afficher les infos
   String _info = '';
 
   @override
@@ -77,7 +78,9 @@ class _HomeState extends State<Home> {
       if (_info == l10n.bmiUnderweight ||
           _info == l10n.bmiNormal ||
           _info == l10n.bmiOverweight ||
-          _info == l10n.bmiObesity) {
+          _info == l10n.bmiObesity ||
+          _info == l10n.bmiObesity2 ||
+          _info == l10n.bmiObesity3) {
         if (controlWeight.text.isNotEmpty && controlHeight.text.isNotEmpty) {
           double weight = double.parse(controlWeight.text);
           double height = double.parse(controlHeight.text) / 100;
@@ -89,6 +92,7 @@ class _HomeState extends State<Home> {
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     User? user = _auth.currentUser;
@@ -116,7 +120,7 @@ class _HomeState extends State<Home> {
               notifier.setLocale(locale);
               final appState = context.findRootAncestorStateOfType<MyAppState>();
               appState?.refresh();
-              _refreshText(); // Mise à jour du texte _info
+              _refreshText();
             },
             itemBuilder: (BuildContext context) => [
               const PopupMenuItem(value: Locale('en'), child: Text('English')),
@@ -148,7 +152,7 @@ class _HomeState extends State<Home> {
                 controller: controlWeight,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context)!.insertWeightError;
+                    return l10n.insertWeightError;
                   }
                   return null;
                 },
@@ -164,7 +168,7 @@ class _HomeState extends State<Home> {
                 controller: controlHeight,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Insert your height!";
+                    return l10n.insertHeightError;
                   }
                   return null;
                 },
@@ -183,20 +187,24 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ),
-            Text(
-              _info,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _info == AppLocalizations.of(context)!.reportData
-                    ? Colors.green
-                    : BMICalculator.getBMIColor(BMICalculator.calculateBMI(
-                    double.parse(controlWeight.text),
-                    double.parse(controlHeight.text) / 100
-                )),
-                fontSize: 25.0,
-                fontFamily: "Segoe UI",
+              Text(
+                _info,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _info == l10n.reportData
+                      ? Colors.green
+                      : BMICalculator.getBMIColor(
+                          controlWeight.text.isNotEmpty && controlHeight.text.isNotEmpty
+                              ? BMICalculator.calculateBMI(
+                                  double.parse(controlWeight.text),
+                                  double.parse(controlHeight.text) / 100,
+                                )
+                              : 0,
+                        ),
+                  fontSize: 25.0,
+                  fontFamily: "Segoe UI",
+                ),
               ),
-            ),
               Padding(
                 padding: EdgeInsets.only(top: 10.0),
                 child: ElevatedButton(
